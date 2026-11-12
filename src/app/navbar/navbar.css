@@ -1,0 +1,101 @@
+
+/* Main navbar appearance */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 15px 40px;
+
+  background-color: #172554;
+  color: white;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Branding container */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logo container */
+.brand-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  background-color: #2563eb;
+  border-radius: 10px;
+
+  font-size: 25px;
+}
+
+/* Application name */
+.brand-text h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+/* Application subtitle */
+.brand-text p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #bfdbfe;
+}
+
+/* Navigation links container */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Individual navigation links */
+.nav-links a {
+  padding: 10px 18px;
+
+  color: #cbd5e1;
+  text-decoration: none;
+
+  border-radius: 7px;
+
+  transition: 0.2s ease;
+}
+
+/* Appearance when hovering over a link */
+.nav-links a:hover {
+  background-color: #1e40af;
+  color: white;
+}
+
+/* Appearance of the currently selected page */
+.nav-links a.active {
+  background-color: #2563eb;
+  color: white;
+  font-weight: bold;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 600px) {
+
+  .navbar {
+    flex-direction: column;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    padding: 9px 12px;
+  }
+}

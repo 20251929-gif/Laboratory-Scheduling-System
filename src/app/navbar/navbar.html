@@ -1,1 +1,35 @@
-<p>navbar works!</p>
+
+<nav class="navbar">
+
+  <div class="brand">
+    <div class="brand-icon">
+      <span>⌂</span>
+    </div>
+
+    <div class="brand-text">
+      <h2>LabReserve</h2>
+      <p>Laboratory Reservation System</p>
+    </div>
+  </div>
+
+  <div class="nav-links">
+
+    <a routerLink="/home"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }">
+      <span>Home</span>
+    </a>
+
+    <a routerLink="/reservation"
+       routerLinkActive="active">
+      <span>Reservation</span>
+    </a>
+
+    <a routerLink="/history"
+       routerLinkActive="active">
+      <span>History</span>
+    </a>
+
+  </div>
+
+</nav>

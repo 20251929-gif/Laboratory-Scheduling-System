@@ -1,35 +1,12 @@
-
 <nav class="navbar">
-
-  <div class="brand">
-    <div class="brand-icon">
-      <span>⌂</span>
-    </div>
-
-    <div class="brand-text">
+    <div class="text">
       <h2>LabReserve</h2>
       <p>Laboratory Reservation System</p>
     </div>
-  </div>
 
   <div class="nav-links">
-
-    <a routerLink="/home"
-       routerLinkActive="active"
-       [routerLinkActiveOptions]="{ exact: true }">
-      <span>Home</span>
-    </a>
-
-    <a routerLink="/reservation"
-       routerLinkActive="active">
-      <span>Reservation</span>
-    </a>
-
-    <a routerLink="/history"
-       routerLinkActive="active">
-      <span>History</span>
-    </a>
-
+    <a routerLink="/" routerLinkActive="active">Home</a>
+    <a routerLink="/reservation" routerLinkActive="active">Reservation</a>
+    <a routerLink="/schedule" routerLinkActive="active">Schedule</a>
   </div>
-
 </nav>

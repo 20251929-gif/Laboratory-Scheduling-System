@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { Routelink, RoutelinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  imports: [Routelink, RoutelinkActive],
+  imports: [RouterLink, RouterLinkActive],
   selector: 'app-navbar',
   styleUrl: './navbar.css',
   templateUrl: './navbar.html',

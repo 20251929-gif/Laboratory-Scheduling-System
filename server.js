@@ -1,195 +1,126 @@
+/**
+ * Name(s):  <Lastname, First Name>; <Lastname, First Name>; <Lastname, First Name>
+ * Date:     November 2026
+ * Project:  Laboratory Room Scheduling System (CSAPPD1 Final Project)
+ * File:     server.js - REST API for reservations (CRUD) and the schedule
+ */
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const { Reservation, ROOMS, SLOTS, REASONS } = require('./models/reservation');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:4200' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN.split(',') }));
 app.use(express.json());
 
-const ROOMS = [
-  'Room 101',
-  'Room 102',
-  'Room 103',
-  'Computer Laboratory',
-  'Science Laboratory',
-  'Conference Room',
-];
-
-const TIME_SLOTS = ['8:00-10:00 AM', '10:00-12:00 PM', '1:00-3:00 PM'];
-
-const PURPOSES = [
-  'Regular Class',
-  'Examination',
-  'Make-up Class',
-  'Faculty Meeting',
-  'Student Organization Meeting',
-  'Seminar/Workshop',
-  'Research Activity',
-  'Other',
-];
-
-const reservationSchema = new mongoose.Schema(
-  {
-    room: { type: String, required: true, enum: ROOMS },
-    date: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ }, // YYYY-MM-DD
-    time: { type: String, required: true, enum: TIME_SLOTS },
-    name: { type: String, required: true, trim: true, maxlength: 100 },
-    reason: { type: String, required: true, enum: PURPOSES },
-  },
-  { timestamps: true }
-);
-
-
-reservationSchema.index({ room: 1, date: 1, time: 1 }, { unique: true });
-
-const Reservation = mongoose.model('Reservation', reservationSchema);
-
-const CONFLICT_MSG = 'That room is already reserved for the selected date and time.';
-
-function handleError(res, err) {
-  if (err.code === 11000) return res.status(409).json({ message: CONFLICT_MSG });
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({ message: Object.values(err.errors).map((e) => e.message).join(', ') });
+// Picks the right status code for an error
+function sendError(res, err) {
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
+    return res.status(400).json({ error: err.message });
   }
-  if (err.name === 'CastError') return res.status(400).json({ message: 'Invalid ID.' });
+  if (err.code === 11000) {
+    return res.status(409).json({ error: 'That room is already reserved at that date and time.' });
+  }
   console.error(err);
-  return res.status(500).json({ message: 'Server error.' });
+  return res.status(500).json({ error: 'Server error.' });
 }
 
-const pickBody = ({ room, date, time, name, reason }) => ({
-  room, date, time, name, reason,
+// Dropdown choices for the forms
+app.get('/api/meta', (req, res) => {
+  res.json({ rooms: ROOMS, slots: SLOTS, reasons: REASONS });
 });
 
-
-app.get('/api/rooms', (_req, res) => res.json(ROOMS));
-app.get('/api/time-slots', (_req, res) => res.json(TIME_SLOTS));
-app.get('/api/purposes', (_req, res) => res.json(PURPOSES));
-
-
-app.get('/api/availability', async (req, res) => {
-  try {
-    const { date, time } = req.query;
-    if (!date) return res.status(400).json({ message: 'date is required (YYYY-MM-DD).' });
-
-    const booked = await Reservation.find({ date }).lean();
-
-    if (time) {
-      const takenRooms = new Set(booked.filter((r) => r.time === time).map((r) => r.room));
-      return res.json(ROOMS.filter((r) => !takenRooms.has(r)));
-    }
-
-    const result = ROOMS.map((room) => ({
-      room,
-      availableSlots: TIME_SLOTS.filter(
-        (slot) => !booked.some((b) => b.room === room && b.time === slot)
-      ),
-    }));
-    res.json(result);
-  } catch (err) {
-    handleError(res, err);
-  }
-});
-
+// Schedule checker: every room and slot for one date (?date=2026-11-20)
 app.get('/api/schedule', async (req, res) => {
-  try {
-    const { date } = req.query;
-    if (!date) return res.status(400).json({ message: 'date is required (YYYY-MM-DD).' });
+  const date = new Date(req.query.date);
+  if (isNaN(date)) return res.status(400).json({ error: 'date must look like 2026-11-20.' });
 
-    const booked = await Reservation.find({ date }).lean();
+  try {
+    const reservations = await Reservation.find({ date });
 
     const schedule = ROOMS.map((room) => ({
       room,
-      slots: TIME_SLOTS.map((time) => {
-        const hit = booked.find((b) => b.room === room && b.time === time);
+      slots: SLOTS.map((slot) => {
+        const found = reservations.find((r) => r.room === room && r.slot === slot.id);
         return {
-          time,
-          status: hit ? 'Occupied' : 'Available',
-          reservationId: hit ? hit._id : null,
-          name: hit ? hit.name : null,
-          reason: hit ? hit.reason : null,
+          slot: slot.id,
+          label: slot.label,
+          status: found ? 'occupied' : 'available',
+          reservation: found || null,
         };
       }),
     }));
 
-    res.json({ date, timeSlots: TIME_SLOTS, schedule });
+    res.json(schedule);
   } catch (err) {
-    handleError(res, err);
+    sendError(res, err);
   }
 });
 
-// ---------------------------------------------------------------
-// Reservations CRUD
-// ---------------------------------------------------------------
+// READ all (optional ?date=2026-11-20)
+app.get('/api/reservations', async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.date) filter.date = new Date(req.query.date);
+
+    const reservations = await Reservation.find(filter).sort({ date: 1, slot: 1 });
+    res.json(reservations);
+  } catch (err) {
+    sendError(res, err);
+  }
+});
+
+// READ one
+app.get('/api/reservations/:id', async (req, res) => {
+  try {
+    const reservation = await Reservation.findById(req.params.id);
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found.' });
+    res.json(reservation);
+  } catch (err) {
+    sendError(res, err);
+  }
+});
 
 // CREATE
 app.post('/api/reservations', async (req, res) => {
   try {
-    const reservation = await Reservation.create(pickBody(req.body));
+    const reservation = await Reservation.create(req.body);
     res.status(201).json(reservation);
   } catch (err) {
-    handleError(res, err);
+    sendError(res, err);
   }
 });
 
-// READ (all, optional filters: ?date=&room=)
-app.get('/api/reservations', async (req, res) => {
-  try {
-    const filter = {};
-    if (req.query.date) filter.date = req.query.date;
-    if (req.query.room) filter.room = req.query.room;
-    const list = await Reservation.find(filter).sort({ date: 1, time: 1 });
-    res.json(list);
-  } catch (err) {
-    handleError(res, err);
-  }
-});
-
-// READ (one)
-app.get('/api/reservations/:id', async (req, res) => {
-  try {
-    const found = await Reservation.findById(req.params.id);
-    if (!found) return res.status(404).json({ message: 'Reservation not found.' });
-    res.json(found);
-  } catch (err) {
-    handleError(res, err);
-  }
-});
-
-// UPDATE (Edit Reservation)
+// UPDATE
 app.put('/api/reservations/:id', async (req, res) => {
   try {
-    const updated = await Reservation.findByIdAndUpdate(req.params.id, pickBody(req.body), {
-      new: true,
+    const reservation = await Reservation.findByIdAndUpdate(req.params.id, req.body, {
+      returnDocument: 'after',
       runValidators: true,
     });
-    if (!updated) return res.status(404).json({ message: 'Reservation not found.' });
-    res.json(updated);
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found.' });
+    res.json(reservation);
   } catch (err) {
-    handleError(res, err);
+    sendError(res, err);
   }
 });
 
-// Cancel Reservation
+// DELETE
 app.delete('/api/reservations/:id', async (req, res) => {
   try {
-    const deleted = await Reservation.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Reservation not found.' });
-    res.json({ message: 'Reservation cancelled.' });
+    const reservation = await Reservation.findByIdAndDelete(req.params.id);
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found.' });
+    res.status(204).end();
   } catch (err) {
-    handleError(res, err);
+    sendError(res, err);
   }
 });
+
+// Connect to MongoDB, then start the server
+const port = process.env.PORT || 3000;
 
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(async () => {
-    await Reservation.init(); // make sure the unique index exists
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-  })
-  .catch((err) => {
-    console.error('MongoDB connection failed:', err.message);
-    process.exit(1);
-  });
+  .then(() => app.listen(port, () => console.log(`API running on port ${port}`)))
+  .catch((err) => console.error('Could not connect to MongoDB:', err.message));

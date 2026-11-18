@@ -8,7 +8,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { Reservation, ROOMS, SLOTS, REASONS } = require('./reservation');
+const { Reservation, ROOMS, SLOTS, REASONS } = require('./models/reservation');
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN.split(',') }));

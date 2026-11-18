@@ -8,5 +8,5 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './navbar.html',
 })
 export class Navbar {
-  
+
 }

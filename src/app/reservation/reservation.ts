@@ -1,13 +1,18 @@
-import {HttpErrorResponse} from '@angular/common/http';
-import {Component, inject, signal} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {catchError, of} from 'rxjs';
-import {ReservationService} from '../reservation-service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, of } from 'rxjs';
+import { ReservationService } from '../reservation-service';
 
 @Component({
   selector: 'app-reservation',
+  standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   template: `
     <main class="page">

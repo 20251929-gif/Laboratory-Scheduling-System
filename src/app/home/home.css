@@ -29,10 +29,12 @@
   background: #2563eb;
   color: white;
   cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
 .page-heading button:hover {
   background: #1d4ed8;
+  transform: translateY(-4px);
 }
 
 .reservation-list {

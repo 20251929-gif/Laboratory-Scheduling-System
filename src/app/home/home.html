@@ -1,1 +1,101 @@
-<p>home works!</p>
+
+<section class="home-container">
+  <div class="page-heading">
+    <h1>Laboratory Room Reservation</h1>
+    <p>Reserve a laboratory room for your class or activity.</p>
+  </div>
+
+  <div class="reservation-form">
+    <h2>Reservation Details</h2>
+
+    <form (ngSubmit)="addReservation()" #reservationForm="ngForm">
+
+      <div class="form-group">
+        <label for="reserveeName">Full Name</label>
+        <input
+          type="text"
+          id="reserveeName"
+          name="reserveeName"
+          [(ngModel)]="newReservation.reserveeName"
+          placeholder="Enter your full name"
+          required
+          minlength="2"
+          maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label for="room">Laboratory Room</label>
+        <select
+          id="room"
+          name="room"
+          [(ngModel)]="newReservation.room"
+          required>
+          <option value="" disabled>Select a room</option>
+          @for (room of rooms; track room) {
+            <option [value]="room">{{ room }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="date">Reservation Date</label>
+        <input
+          type="date"
+          id="date"
+          name="date"
+          [(ngModel)]="newReservation.date"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="slot">Time Slot</label>
+        <select
+          id="slot"
+          name="slot"
+          [(ngModel)]="newReservation.slot"
+          required>
+          <option value="" disabled>Select a time slot</option>
+          @for (slot of slots; track slot.id) {
+            <option [value]="slot.id">{{ slot.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="reason">Purpose of Reservation</label>
+        <select
+          id="reason"
+          name="reason"
+          [(ngModel)]="newReservation.reason"
+          required>
+          <option value="" disabled>Select a purpose</option>
+          @for (reason of reasons; track reason) {
+            <option [value]="reason">{{ reason }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="attendees">Number of Attendees</label>
+        <input
+          type="number"
+          id="attendees"
+          name="attendees"
+          [(ngModel)]="newReservation.attendees"
+          min="1"
+          max="200"
+          step="1"
+          required>
+      </div>
+
+      <button type="submit" [disabled]="reservationForm.invalid || isLoading">
+        {{ isLoading ? 'Submitting...' : 'Submit Reservation' }}
+      </button>
+
+      @if (message) {
+        <p class="message">{{ message }}</p>
+      }
+
+    </form>
+  </div>
+</section>

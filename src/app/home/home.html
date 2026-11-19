@@ -1,103 +1,73 @@
+
 <section class="home-container">
+
   <div class="page-heading">
-    <h1>Laboratory Room Reservation</h1>
-    <p>Reserve a laboratory room for your class or activity.</p>
+    <div>
+      <h1>Laboratory Reservations</h1>
+      <p>View and manage existing laboratory room reservations.</p>
+    </div>
+
+    <button type="button" (click)="loadReservations()">
+      Refresh
+    </button>
   </div>
 
-  <div class="reservation-form">
-    <h2>Reservation Details</h2>
+  @if (message) {
+    <p class="message">{{ message }}</p>
+  }
 
-    <form (ngSubmit)="addReservation()" #reservationForm="ngForm">
+  <div class="reservation-list">
 
-      <div class="form-group">
-        <label for="reserveeName">Full Name</label>
-        <input
-          type="text"
-          id="reserveeName"
-          name="reserveeName"
-          [(ngModel)]="newReservation.reserveeName"
-          placeholder="Enter your full name"
-          required
-          minlength="2"
-          maxlength="100">
+    <h2>Reservation Records</h2>
+
+    @if (isLoading) {
+      <p class="empty-message">Loading reservations...</p>
+    } @else if (reservations.length === 0) {
+      <p class="empty-message">No reservations found.</p>
+    } @else {
+
+      <div class="table-wrapper">
+        <table>
+
+          <thead>
+            <tr>
+              <th>Reservee Name</th>
+              <th>Room</th>
+              <th>Date</th>
+              <th>Time Slot</th>
+              <th>Purpose</th>
+              <th>Attendees</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (reservation of reservations; track reservation._id) {
+              <tr>
+                <td>{{ reservation.reserveeName }}</td>
+                <td>{{ reservation.room }}</td>
+                <td>{{ reservation.date | date:'mediumDate':'UTC' }}</td>
+                <td>{{ reservation.slot }}</td>
+                <td>{{ reservation.reason }}</td>
+                <td>{{ reservation.attendees }}</td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="delete-button"
+                    (click)="deleteReservation(reservation._id)">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+
+        </table>
       </div>
 
-      <div class="form-group">
-        <label for="room">Laboratory Room</label>
-        <select
-          id="room"
-          name="room"
-          [(ngModel)]="newReservation.room"
-          required>
-          <option value="" disabled>Select a room</option>
-          @for (room of rooms; track room) {
-            <option [value]="room">{{ room }}</option>
-          }
-        </select>
-      </div>
+    }
 
-      <div class="form-group">
-        <label for="date">Reservation Date</label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          [(ngModel)]="newReservation.date"
-          required>
-      </div>
-
-      <div class="form-group">
-        <label for="slot">Time Slot</label>
-        <select
-          id="slot"
-          name="slot"
-          [(ngModel)]="newReservation.slot"
-          required>
-          <option value="" disabled>Select a time slot</option>
-          @for (slot of slots; track slot.id) {
-            <option [value]="slot.id">{{ slot.label }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="reason">Purpose of Reservation</label>
-        <select
-          id="reason"
-          name="reason"
-          [(ngModel)]="newReservation.reason"
-          required>
-          <option value="" disabled>Select a purpose</option>
-          @for (reason of reasons; track reason) {
-            <option [value]="reason">{{ reason }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="attendees">Number of Attendees</label>
-        <input
-          type="number"
-          id="attendees"
-          name="attendees"
-          [(ngModel)]="newReservation.attendees"
-          min="1"
-          max="200"
-          step="1"
-          required>
-      </div>
-
-      <button type="submit" [disabled]="reservationForm.invalid || isLoading">
-        {{ isLoading ? 'Submitting...' : 'Submit Reservation' }}
-      </button>
-
-      @if (message) {
-        <p class="message">{{ message }}</p>
-      }
-
-    </form>
   </div>
+
 </section>
-=======
-<h1>Home</h1>
->>>>>>> 9218e3fb898bbba33e0cbe2993f257e906cf7d55

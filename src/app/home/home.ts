@@ -1,9 +1,10 @@
 
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 
 interface ReservationData {
+  _id: string;
   reserveeName: string;
   room: string;
   date: string;
@@ -12,83 +13,70 @@ interface ReservationData {
   attendees: number;
 }
 
-interface MetaData {
-  rooms: string[];
-  slots: { id: string; label: string }[];
-  reasons: string[];
-}
-
 @Component({
-  imports: [FormsModule],
+  imports: [DatePipe],
   selector: 'app-home',
   styleUrl: './home.css',
   templateUrl: './home.html',
 })
 export class Home implements OnInit {
 
+  // Backend API address
   private apiUrl = 'http://localhost:4200/api';
 
-  rooms: string[] = [];
-  slots: { id: string; label: string }[] = [];
-  reasons: string[] = [];
+  // Stores all reservations retrieved from the backend
+  reservations: ReservationData[] = [];
 
-  message = '';
+  // Controls loading and message display
   isLoading = false;
-
-  newReservation: ReservationData = {
-    reserveeName: '',
-    room: '',
-    date: '',
-    slot: '',
-    reason: '',
-    attendees: 1
-  };
+  message = '';
 
   constructor(private http: HttpClient) {}
 
+  // Automatically loads reservations when Home opens
   ngOnInit(): void {
-    this.loadOptions();
+    this.loadReservations();
   }
 
-  // Gets the dropdown options from the backend
-  loadOptions(): void {
-    this.http.get<MetaData>(`${this.apiUrl}/meta`).subscribe({
-      next: (data: MetaData) => {
-        this.rooms = data.rooms;
-        this.slots = data.slots;
-        this.reasons = data.reasons;
+  // Retrieves all existing reservations
+  loadReservations(): void {
+    this.isLoading = true;
+    this.message = '';
+
+    this.http.get<ReservationData[]>(
+      `${this.apiUrl}/reservations`
+    ).subscribe({
+      next: (data: ReservationData[]) => {
+        this.reservations = data;
+        this.isLoading = false;
       },
       error: (error: any) => {
-        this.message = 'Unable to load reservation options.';
+        this.message = 'Unable to load reservations. Please try again.';
+        this.isLoading = false;
         console.error(error);
       }
     });
   }
 
-  // Sends the reservation information to the backend
-  addReservation(): void {
-    this.message = '';
-    this.isLoading = true;
+  // Deletes a reservation using its MongoDB ID
+  deleteReservation(id: string): void {
+    const confirmed = confirm(
+      'Are you sure you want to delete this reservation?'
+    );
 
-    this.http.post(`${this.apiUrl}/reservations`, this.newReservation).subscribe({
+    if (!confirmed) {
+      return;
+    }
+
+    this.http.delete(
+      `${this.apiUrl}/reservations/${id}`
+    ).subscribe({
       next: () => {
-        this.message = 'Reservation submitted successfully!';
-
-        // Clears the form after successful submission
-        this.newReservation = {
-          reserveeName: '',
-          room: '',
-          date: '',
-          slot: '',
-          reason: '',
-          attendees: 1
-        };
-
-        this.isLoading = false;
+        this.message = 'Reservation deleted successfully.';
+        this.loadReservations();
       },
       error: (error: any) => {
-        this.message = error.error?.error || 'Failed to submit reservation.';
-        this.isLoading = false;
+        this.message = error.error?.error || 'Failed to delete reservation.';
         console.error(error);
       }
     });

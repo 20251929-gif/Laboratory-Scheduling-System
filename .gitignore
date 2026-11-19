@@ -42,3 +42,17 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Angular build files
+dist/
+.angular/
+
+# Logs
+npm-debug.log*

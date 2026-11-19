@@ -26,7 +26,7 @@ interface MetaData {
 })
 export class Home implements OnInit {
 
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = 'http://localhost:4200/api';
 
   rooms: string[] = [];
   slots: { id: string; label: string }[] = [];

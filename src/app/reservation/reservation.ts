@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReservationService } from '../reservation-service';
 import { Meta, ReservationInput } from '../reservation-types';
@@ -12,12 +12,10 @@ import { Meta, ReservationInput } from '../reservation-types';
 })
 export class Reservation implements OnInit {
 
-  // Stores dropdown options from the backend
   rooms: string[] = [];
   slots: Meta['slots'] = [];
   reasons: string[] = [];
 
-  // Stores the information entered in the reservation form
   newReservation: ReservationInput = {
     reserveeName: '',
     room: '',
@@ -30,38 +28,47 @@ export class Reservation implements OnInit {
   message = '';
   isLoading = false;
 
-  constructor(private reservationService: ReservationService) {}
+  constructor(
+    private reservationService: ReservationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  // Loads dropdown options when the component opens
   ngOnInit(): void {
     this.loadOptions();
   }
 
-  // Retrieves rooms, time slots, and reasons from the backend
+  // Loads the available reservation options
   loadOptions(): void {
     this.reservationService.getMeta().subscribe({
       next: (data: Meta) => {
         this.rooms = data.rooms;
         this.slots = data.slots;
         this.reasons = data.reasons;
+
+        this.cdr.markForCheck();
       },
+
       error: (error: any) => {
         this.message = 'Unable to load reservation options.';
         console.error(error);
+
+        this.cdr.markForCheck();
       }
     });
   }
 
-  // Submits the reservation information to the backend
+  // Submits a new reservation
   addReservation(): void {
     this.message = '';
     this.isLoading = true;
 
     this.reservationService.createReservation(this.newReservation).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Reservation response:', response);
+
         this.message = 'Reservation submitted successfully!';
 
-        // Resets the form after successful submission
+        // Resets the form fields
         this.newReservation = {
           reserveeName: '',
           room: '',
@@ -72,11 +79,18 @@ export class Reservation implements OnInit {
         };
 
         this.isLoading = false;
+
+        // Notifies Angular to update the view
+        this.cdr.markForCheck();
       },
+
       error: (error: any) => {
+        console.error('Submission error:', error);
+
         this.message = error.error?.error || 'Failed to submit reservation.';
         this.isLoading = false;
-        console.error(error);
+
+        this.cdr.markForCheck();
       }
     });
   }

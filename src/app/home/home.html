@@ -7,8 +7,11 @@
       <p>View and manage existing laboratory room reservations.</p>
     </div>
 
-    <button type="button" (click)="loadReservations()">
-      Refresh
+    <button
+      type="button"
+      (click)="loadReservations()"
+      [disabled]="isLoading">
+      {{ isLoading ? 'Loading...' : 'Refresh' }}
     </button>
   </div>
 
@@ -21,12 +24,17 @@
     <h2>Reservation Records</h2>
 
     @if (isLoading) {
-      <p class="empty-message">Reservation empty</p>
+
+      <p class="empty-message">Loading reservations...</p>
+
     } @else if (reservations.length === 0) {
+
       <p class="empty-message">No reservations found.</p>
+
     } @else {
 
       <div class="table-wrapper">
+
         <table>
 
           <thead>
@@ -42,13 +50,22 @@
           </thead>
 
           <tbody>
+
             @for (reservation of reservations; track reservation._id) {
+
               <tr>
                 <td>{{ reservation.reserveeName }}</td>
+
                 <td>{{ reservation.room }}</td>
-                <td>{{ reservation.date | date:'mediumDate':'UTC' }}</td>
+
+                <td>
+                  {{ reservation.date | date:'mediumDate':'UTC' }}
+                </td>
+
                 <td>{{ reservation.slot }}</td>
+
                 <td>{{ reservation.reason }}</td>
+
                 <td>{{ reservation.attendees }}</td>
 
                 <td>
@@ -60,10 +77,13 @@
                   </button>
                 </td>
               </tr>
+
             }
+
           </tbody>
 
         </table>
+
       </div>
 
     }

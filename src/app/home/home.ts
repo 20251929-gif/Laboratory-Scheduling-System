@@ -1,17 +1,8 @@
 
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
-
-interface ReservationData {
-  _id: string;
-  reserveeName: string;
-  room: string;
-  date: string;
-  slot: string;
-  reason: string;
-  attendees: number;
-}
+import { ReservationService } from '../reservation-service';
+import { ReservationRecord } from '../reservation-types';
 
 @Component({
   imports: [DatePipe],
@@ -21,17 +12,17 @@ interface ReservationData {
 })
 export class Home implements OnInit {
 
-  // Backend API address
-  private apiUrl = 'http://localhost:3000/api';
-
   // Stores all reservations retrieved from the backend
-  reservations: ReservationData[] = [];
+  reservations: ReservationRecord[] = [];
 
   // Controls loading and message display
   isLoading = false;
   message = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private reservationService: ReservationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   // Automatically loads reservations when Home opens
   ngOnInit(): void {
@@ -43,17 +34,26 @@ export class Home implements OnInit {
     this.isLoading = true;
     this.message = '';
 
-    this.http.get<ReservationData[]>(
-      `${this.apiUrl}/reservations`
-    ).subscribe({
-      next: (data: ReservationData[]) => {
+    this.reservationService.getReservations().subscribe({
+      next: (data: ReservationRecord[]) => {
+        console.log('Reservations received:', data);
+        console.log('Number of reservations:', data.length);
+
+        // Stores the retrieved reservations
         this.reservations = data;
         this.isLoading = false;
+
+        // Notifies Angular to update the view
+        this.cdr.markForCheck();
       },
+
       error: (error: any) => {
         this.message = 'Unable to load reservations. Please try again.';
         this.isLoading = false;
-        console.error(error);
+
+        console.error('Failed to load reservations:', error);
+
+        this.cdr.markForCheck();
       }
     });
   }
@@ -68,16 +68,22 @@ export class Home implements OnInit {
       return;
     }
 
-    this.http.delete(
-      `${this.apiUrl}/reservations/${id}`
-    ).subscribe({
+    this.reservationService.deleteReservation(id).subscribe({
       next: () => {
         this.message = 'Reservation deleted successfully.';
+
+        this.cdr.markForCheck();
+
+        // Reloads the reservation list after deletion
         this.loadReservations();
       },
+
       error: (error: any) => {
         this.message = error.error?.error || 'Failed to delete reservation.';
-        console.error(error);
+
+        console.error('Failed to delete reservation:', error);
+
+        this.cdr.markForCheck();
       }
     });
   }

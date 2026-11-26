@@ -22,7 +22,7 @@ interface ReservationData {
 export class Home implements OnInit {
 
   // Backend API address
-  private apiUrl = 'http://localhost:4200/api';
+  private apiUrl = 'http://localhost:3000/api';
 
   // Stores all reservations retrieved from the backend
   reservations: ReservationData[] = [];

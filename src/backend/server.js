@@ -4,7 +4,7 @@
  * Project:  Laboratory Room Scheduling System (CSAPPD1 Final Project)
  * File:     server.js - REST API for reservations (CRUD) and the schedule
  */
-require('dotenv').config();
+require('dotenv').config({ path: 'src/backend/.env' });
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
